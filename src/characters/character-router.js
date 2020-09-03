@@ -12,14 +12,14 @@ characterRouter
       })
       .catch(next);
   });
-characterRouter.route('/:thing_id')
+characterRouter.route('/:char_id')
   .all(requireAuth)
-  .all(checkThingExists)
+  .all(checkCharExists)
   .get((req, res) => {
     res.json(ThingsService.serializeThing(res.thing))
   });
 
-async function checkThingExists(req, res, next) {
+async function checkCharExists(req, res, next) {
   try {
     const character = await characterService.getById(
       req.app.get('db'),

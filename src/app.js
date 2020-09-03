@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-console */
 require('dotenv').config();
 const express = require('express');
@@ -8,18 +9,20 @@ const { NODE_ENV } = require('./config');
 const errorHandler = require('./error-handler');
 const authRouter = require('./auth/auth-router');
 const characterRouter = require('./characters/character-router');
+const usersRouter = require('./Users/users-router');
 
 const app = express();
 
 app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
   skip: () => NODE_ENV === 'test',
 }));
+
 app.use(errorHandler);
 app.use(helmet());
 app.use(cors());
 app.use('/api/auth', authRouter);
-
 app.use('/api/Characters', characterRouter);
+app.use('/api/users', usersRouter);
 
 app.get('/', (req, res) => {
   res.send('Hello, boilerplate!');
