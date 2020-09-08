@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const xss = require('xss');
 
 const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/;
-
+const REGEX_SPECIAL = /(?=.*[a-z])(?=.*[!@#\$%\^&])[\S]+/;
 const UsersService = {
   hasUserWithUserName(db, user_name) {
     return db('jurps_users')
@@ -55,7 +55,7 @@ const UsersService = {
     if (email.startsWith(' ') || email.endsWith(' ')) {
       return 'Username must not start or end with empty spaces';
     }
-    if (!REGEX_UPPER_LOWER_NUMBER_SPECIAL.test(email)) {
+    if (!REGEX_SPECIAL.test(email)) {
       return 'Email must be in the format of "Email@domain.com"';
     }
     return null;
