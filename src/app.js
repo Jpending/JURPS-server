@@ -22,7 +22,7 @@ app.use(helmet());
 app.use(cors());
 app.use('/api/auth', authRouter);
 app.use('/api/Characters', characterRouter);
-app.use('/api/users', usersRouter);
+app.use('/api/Users', usersRouter);
 
 app.get('/', (req, res) => {
   res.send('Hello, boilerplate!');

@@ -1,6 +1,6 @@
 const UsersService = {
   getAllUsers(knex) {
-    return knex.select('*').from('blogful_users');
+    return knex.select('*').from('jurps_users');
   },
 
   insertUser(knex, newUser) {

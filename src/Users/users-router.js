@@ -11,8 +11,9 @@ const jsonParser = express.json();
 
 const serializeUser = user => ({
   id: user.id,
-  username: xss(user.username),
-  nickname: xss(user.nickname),
+  displayname: xss(user.display_name),
+  user_name: xss(user.user_name),
+  email: xss(user.email),
   date_created: user.date_created,
 });
 
@@ -27,8 +28,8 @@ usersRouter
       .catch(next);
   })
   .post(jsonParser, (req, res, next) => {
-    const { fullname, username, nickname, password } = req.body;
-    const newUser = { fullname, username };
+    const { email, user_name, displayname, password } = req.body;
+    const newUser = { email, user_name };
 
     for (const [key, value] of Object.entries(newUser))
       if (value == null)
@@ -36,7 +37,7 @@ usersRouter
           error: { message: `Missing '${key}' in request body` }
         });
 
-    newUser.nickname = nickname;
+    newUser.display_name = displayname;
     newUser.password = password;
 
     UsersService.insertUser(
@@ -84,8 +85,8 @@ usersRouter
       .catch(next);
   })
   .patch(jsonParser, (req, res, next) => {
-    const { fullname, username, password, nickname } = req.body;
-    const userToUpdate = { fullname, username, password, nickname };
+    const { email, user_name, password, displayname } = req.body;
+    const userToUpdate = { email, user_name, password, displayname };
 
     const numberOfValues = Object.values(userToUpdate).filter(Boolean).length;
     if (numberOfValues === 0)
