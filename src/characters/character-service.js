@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable quotes */
 const xss = require('xss');
 const Treeize = require('treeize');
@@ -22,6 +23,7 @@ const characterService = {
   },
 
   getById(db, id) {
+    console.log(id);
     return characterService.getAllCharacters(db)
       .where('char.id', id)
       .first();

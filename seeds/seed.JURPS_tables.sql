@@ -8,7 +8,7 @@ RESTART IDENTITY CASCADE;
 INSERT INTO JURPS_users (user_name, email, password )
 VALUES
 ('dunder', 'dunder@mifflin.com', 'mifflin'),
-('admin', 'admin@admin.admin', 'password');
+('admin', 'admin@admin.admin', '$2y$12$MIVZHt0G9wkA4Rqf8NSFpuLtX/x.Xryn5qC.Ss5M2BlnpOa.2bo.O');
 
 INSERT INTO JURPS_characters(name, race, class, strength, dexterity, intelligence, health, hit_points, will, perception, fatigue_points, user_id)
 VALUES

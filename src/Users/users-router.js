@@ -9,13 +9,6 @@ const UsersService = require('./users-service');
 const usersRouter = express.Router();
 const jsonParser = express.json();
 
-const serializeUser = user => ({
-  id: user.id,
-  displayname: xss(user.display_name),
-  user_name: xss(user.user_name),
-  email: xss(user.email),
-  date_created: user.date_created,
-});
 
 usersRouter
   .route('/')
@@ -23,36 +16,67 @@ usersRouter
     const knexInstance = req.app.get('db');
     UsersService.getAllUsers(knexInstance)
       .then(users => {
-        res.json(users.map(serializeUser));
+        res.json(users.map(UsersService.serializeUser));
       })
       .catch(next);
   })
   .post(jsonParser, (req, res, next) => {
-    const { email, user_name, displayname, password } = req.body;
-    const newUser = { email, user_name };
+    const { email, user_name, display_name, password } = req.body;
 
-    for (const [key, value] of Object.entries(newUser))
-      if (value == null)
+    for (const field of ['email', 'display_name', 'user_name', 'password'])
+      if (!req.body[field])
         return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
+          error: `Missing '${field}' in request body`
         });
 
-    newUser.display_name = displayname;
-    newUser.password = password;
+    const EmailError = UsersService.validateEmail(email);
+    if (EmailError)
+      return res.status(400).json({ error: EmailError });
 
-    UsersService.insertUser(
+    const DisplayNameError = UsersService.validateDisplayName(display_name);
+    if (DisplayNameError)
+      return res.status(400).json({ error: DisplayNameError });
+
+    const usernameError = UsersService.validateUserName(user_name);
+    if (usernameError)
+      return res.status(400).json({ error: usernameError });
+
+    const passwordError = UsersService.validatePassword(password);
+    if (passwordError)
+      return res.status(400).json({ error: passwordError });
+
+    UsersService.hasUserWithUserName(
       req.app.get('db'),
-      newUser
+      user_name
     )
-      .then(user => {
-        res
-          .status(201)
-          .location(path.posix.join(req.originalUrl, `/${user.id}`))
-          .json(serializeUser(user));
-      })
-      .catch(next);
-  });
+      .then(hasUserWithUserName => {
+        if (hasUserWithUserName)
+          return res.status(400).json({ error: `Username already taken` });
 
+        return UsersService.hashPassword(password)
+          .then(hashedPassword => {
+            const newUser = {
+              user_name,
+              password: hashedPassword,
+              email,
+              display_name,
+              date_created: 'now()',
+            };
+
+            return UsersService.insertUser(
+              req.app.get('db'),
+              newUser
+            )
+              .then(user => {
+                res
+                  .status(201)
+                  .location(path.posix.join(req.originalUrl, `/${user.id}`))
+                  .json(UsersService.serializeUser(user));
+              })
+              .catch(next);
+          });
+      });
+  });
 usersRouter
   .route('/:user_id')
   .all((req, res, next) => {
@@ -72,7 +96,7 @@ usersRouter
       .catch(next);
   })
   .get((req, res, next) => {
-    res.json(serializeUser(res.user));
+    res.json(UsersService.serializeUser(res.user));
   })
   .delete((req, res, next) => {
     UsersService.deleteUser(

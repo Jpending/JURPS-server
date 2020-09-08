@@ -28,6 +28,7 @@ authRouter
           .then(compareMatch => {
             if (!compareMatch)
               return res.status(400).json({
+                message: dbUser.password,
                 error: 'Incorrect user_name or password',
               });
 

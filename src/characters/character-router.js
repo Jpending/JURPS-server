@@ -16,19 +16,20 @@ characterRouter.route('/:char_id')
   .all(requireAuth)
   .all(checkCharExists)
   .get((req, res) => {
-    res.json(ThingsService.serializeThing(res.thing))
+    res.json(characterService.serializeCharacter(res.character))
   });
 
 async function checkCharExists(req, res, next) {
   try {
     const character = await characterService.getById(
       req.app.get('db'),
-      req.params.character_id
+      req.params.char_id
     )
 
-    if (!thing)
+    if (!character)
       return res.status(404).json({
-        error: `Thing doesn't exist`
+        message: req.params.char_id,
+        error: `That doesn't exist`
       })
 
     res.character = character
