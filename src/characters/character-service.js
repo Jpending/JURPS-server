@@ -12,7 +12,18 @@ const characterService = {
         'char.name',
         'char.date_created',
         'char.race',
-        'char.class',
+        'char.cclass',
+        'char.strength',
+        'char.dexterity',
+        'char.intelligence',
+        'char.health',
+        'char.hit_points',
+        'char.will',
+        'char.perception',
+        'char.fatigue_points',
+        'char.abilities',
+        'char.background_story',
+        'char.user_id',
         ...userFields)
       .leftJoin(
         'jurps_users AS usr',
@@ -28,11 +39,36 @@ const characterService = {
       .where('char.id', id)
       .first();
   },
+  updateChar(knex, id, newCharFields) {
+    return knex('jurps_characters')
+      .where({ id })
+      .update(newCharFields);
+  },
+  insertChar(knex, newChar) {
+    return knex
+      .insert(newChar)
+      .into('jurps_characters')
+      .returning('*')
+      .then(rows => {
+        return rows[0];
+      });
+  },
 
   serializeCharacters(chars) {
     return chars.map(this.serializeCharacter);
   },
-
+  validatefield(field) {
+    if (field.length < 2) {
+      return 'Field name must be longer than 2 characters';
+    }
+    if (field.length > 300) {
+      return 'Field name must be less than 300 characters';
+    }
+    if (field.startsWith(' ') || field.endsWith(' ')) {
+      return 'Field name must not start or end with empty spaces';
+    }
+    return null;
+  },
   serializeCharacter(char) {
     const charTree = new Treeize();
 
@@ -42,9 +78,19 @@ const characterService = {
       id: charData.id,
       name: xss(charData.name),
       race: xss(charData.race),
-      class: xss(charData.class),
+      class: xss(charData.cclass),
+      str: charData.strength,
+      dex: charData.dexterity,
+      int: charData.intelligence,
+      health: charData.health,
+      hp: charData.hit_points,
+      will: charData.will,
+      per: charData.perception,
+      fp: charData.fatigue_points,
+      abilities: xss(charData.abilities),
+      story: xss(charData.background_story),
       date_created: charData.date_created,
-      user: charData.user || {},
+      user_id: charData.user_id || {},
     };
   },
 

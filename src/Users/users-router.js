@@ -5,10 +5,10 @@ const path = require('path');
 const express = require('express');
 const xss = require('xss');
 const UsersService = require('./users-service');
-
+const characterService = require('../characters/character-service');
 const usersRouter = express.Router();
 const jsonParser = express.json();
-
+const { requireAuth } = require('../middleware/jwt-auth');
 
 usersRouter
   .route('/')
@@ -77,6 +77,61 @@ usersRouter
           });
       });
   });
+
+usersRouter
+  .route('/:user_id/Characters')
+  .all(requireAuth)
+  .get((req, res, next) => {
+    UsersService.getUserChars(
+      req.app.get('db'),
+      req.params.user_id)
+      .then(chars => {
+        res.json(characterService.serializeCharacters(chars));
+      })
+      .catch(next);
+  })
+  .post(jsonParser, (req, res, next) => {
+    const user_id = req.params.user_id;
+    const { name, race, cclass, strength, dexterity, intelligence, health, hit_points, will, perception, fatigue_points, abilities, background_story } = req.body;
+    for (const field of ['name', 'race', 'cclass', 'strength', 'intelligence', 'dexterity', 'health', 'hit_points', 'will', 'perception', 'fatigue_points'])
+      if (!req.body[field])
+        return res.status(400).json({
+          error: `Missing '${field}' in request body`
+        });
+    const nameError = characterService.validatefield(name);
+    if (nameError)
+      return res.status(400).json({ error: nameError });
+    const raceError = characterService.validatefield(race);
+    if (raceError)
+      return res.status(400).json({ error: raceError });
+    const classError = characterService.validatefield(cclass);
+    if (classError)
+      return res.status(400).json({ error: classError });
+    const abilitiesError = characterService.validatefield(abilities);
+    if (abilitiesError)
+      return res.status(400).json({ error: abilitiesError });
+    const storyError = characterService.validatefield(background_story);
+    if (storyError)
+      return res.status(400).json({ error: storyError });
+    const newChar = {
+      name, race, cclass,
+      strength, dexterity, intelligence, health, hit_points, will, perception, fatigue_points, user_id,
+      abilities, background_story
+    };
+    return characterService.insertChar(
+      req.app.get('db'),
+      newChar
+    )
+      .then(char => {
+        res
+          .status(201)
+          .location(path.posix.join(req.originalUrl, `/${char.id}`))
+          .json(characterService.serializeCharacter(char));
+      })
+      .catch(next);
+  });
+
+
 usersRouter
   .route('/:user_id')
   .all((req, res, next) => {
@@ -109,26 +164,37 @@ usersRouter
       .catch(next);
   })
   .patch(jsonParser, (req, res, next) => {
-    const { email, user_name, password, displayname } = req.body;
-    const userToUpdate = { email, user_name, password, displayname };
+    const { email, user_name, password, display_name } = req.body;
+    const userToUpdate = { email, user_name, password, display_name };
 
     const numberOfValues = Object.values(userToUpdate).filter(Boolean).length;
     if (numberOfValues === 0)
       return res.status(400).json({
         error: {
-          message: `Request body must content either 'fullname', 'username', 'password' or 'nickname'`
+          message: `Request body must contain either 'email', 'username', 'password' or 'display name'`
         }
       });
 
-    UsersService.updateUser(
-      req.app.get('db'),
-      req.params.user_id,
-      userToUpdate
-    )
-      .then(numRowsAffected => {
-        res.status(204).end();
-      })
-      .catch(next);
+    return UsersService.hashPassword(password)
+      .then(hashedPassword => {
+        const protectedUser = {
+          user_name,
+          password: hashedPassword,
+          email,
+          display_name,
+          date_created: 'now()',
+        };
+
+        UsersService.updateUser(
+          req.app.get('db'),
+          req.params.user_id,
+          protectedUser
+        )
+          .then(numRowsAffected => {
+            res.status(204).end();
+          })
+          .catch(next);
+      });
   });
 
 module.exports = usersRouter;

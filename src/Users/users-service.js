@@ -2,14 +2,45 @@
 const bcrypt = require('bcryptjs');
 const xss = require('xss');
 
+
 const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/;
 const REGEX_SPECIAL = /(?=.*[a-z])(?=.*[!@#\$%\^&])[\S]+/;
+
+
 const UsersService = {
   hasUserWithUserName(db, user_name) {
     return db('jurps_users')
       .where({ user_name })
       .first()
       .then(user => !!user);
+  },
+
+  getUserChars(knex, user_id) {
+    return knex
+      .select('char.id',
+        'char.name',
+        'char.date_created',
+        'char.race',
+        'char.cclass',
+        'char.strength',
+        'char.dexterity',
+        'char.intelligence',
+        'char.health',
+        'char.hit_points',
+        'char.will',
+        'char.perception',
+        'char.fatigue_points',
+        'char.abilities',
+        'char.background_story',
+        ...userFields)
+      .leftJoin(
+        'jurps_users AS usr',
+        'char.user_id',
+        'usr.id'
+      )
+
+      .from('jurps_characters as char')
+      .where('char.user_id', user_id);
   },
 
   getAllUsers(knex) {
@@ -46,8 +77,8 @@ const UsersService = {
       .update(newUserFields);
   },
   validateEmail(email) {
-    if (email.length < 8) {
-      return 'Email must be longer than 8 characters';
+    if (email.length < 9) {
+      return 'Email must be longer than 9 characters';
     }
     if (email.length > 72) {
       return 'Email must be less than 72 characters';
@@ -58,6 +89,7 @@ const UsersService = {
     if (!REGEX_SPECIAL.test(email)) {
       return 'Email must be in the format of "Email@domain.com"';
     }
+
     return null;
   },
   validateDisplayName(display_name) {
@@ -106,12 +138,18 @@ const UsersService = {
   serializeUser(user) {
     return {
       id: user.id,
-      full_name: xss(user.full_name),
+      email: xss(user.email),
       user_name: xss(user.user_name),
-      nickname: xss(user.nick_name),
+      display_name: xss(user.display_name),
       date_created: new Date(user.date_created),
     };
   }
 };
+const userFields = [
+  'usr.id AS user:id',
+  'usr.user_name AS user:user_name',
+  'usr.email AS user:email',
+  'usr.date_created AS user:date_created',
 
+];
 module.exports = UsersService;

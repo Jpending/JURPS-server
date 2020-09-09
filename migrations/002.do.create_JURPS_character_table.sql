@@ -1,9 +1,9 @@
-CREATE TABLE JURPS_characters(
+CREATE TABLE jurps_characters(
   id SERIAL PRIMARY KEY,
   date_created TIMESTAMPTZ DEFAULT now() NOT NULL,
   name TEXT NOT NULL,
   race TEXT NOT NULL,
-  class TEXT NOT NULL,
+  cclass TEXT NOT NULL,
   strength INTEGER NOT NULL,
   dexterity INTEGER NOT NULL,
   intelligence INTEGER NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE JURPS_characters(
   abilities TEXT ,
   background_story TEXT,
   user_id INTEGER
-        REFERENCES JURPS_users(id) ON DELETE CASCADE NOT NULL
+        REFERENCES jurps_users(id) ON DELETE CASCADE NOT NULL
 );
