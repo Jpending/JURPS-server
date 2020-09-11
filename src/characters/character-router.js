@@ -3,6 +3,7 @@ const characterService = require('./character-service');
 const { requireAuth } = require('../middleware/jwt-auth');
 const characterRouter = express.Router();
 const jsonParser = express.json();
+
 characterRouter
   .route('/')
   .get((req, res, next) => {

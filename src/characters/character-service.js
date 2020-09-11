@@ -32,11 +32,12 @@ const characterService = {
       )
       .groupBy('char.id', 'usr.id');
   },
-
-  getById(db, id) {
-    console.log(id);
-    return characterService.getAllCharacters(db)
-      .where('char.id', id)
+  getById(db, char_id) {
+    console.log('   esegegseges    ' + char_id);
+    return db
+      .from('jurps_characters AS char')
+      .select()
+      .where('id', char_id)
       .first();
   },
   updateChar(knex, id, newCharFields) {
@@ -59,22 +60,21 @@ const characterService = {
   },
   validatefield(field) {
     if (field.length < 2) {
-      return 'Field name must be longer than 2 characters';
+      return `${field} must be longer than 2 characters`;
     }
     if (field.length > 300) {
-      return 'Field name must be less than 300 characters';
+      return '`{field} must be less than 300 characters`';
     }
     if (field.startsWith(' ') || field.endsWith(' ')) {
-      return 'Field name must not start or end with empty spaces';
+      return '`{field} must not start or end with empty spaces`';
     }
     return null;
   },
   serializeCharacter(char) {
     const charTree = new Treeize();
-
     const charData = charTree.grow([char]).getData()[0];
-
     return {
+      cid: charData.id,
       id: charData.id,
       name: xss(charData.name),
       race: xss(charData.race),

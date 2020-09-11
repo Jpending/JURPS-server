@@ -17,7 +17,8 @@ const UsersService = {
 
   getUserChars(knex, user_id) {
     return knex
-      .select('char.id',
+      .select(
+        'char.id',
         'char.name',
         'char.date_created',
         'char.race',
@@ -38,7 +39,6 @@ const UsersService = {
         'char.user_id',
         'usr.id'
       )
-
       .from('jurps_characters as char')
       .where('char.user_id', user_id);
   },

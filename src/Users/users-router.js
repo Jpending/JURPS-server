@@ -81,6 +81,7 @@ usersRouter
 usersRouter
   .route('/:user_id/Characters')
   .all(requireAuth)
+
   .get((req, res, next) => {
     UsersService.getUserChars(
       req.app.get('db'),
@@ -92,6 +93,7 @@ usersRouter
   })
   .post(jsonParser, (req, res, next) => {
     const user_id = req.params.user_id;
+    console.log(req.body);
     const { name, race, cclass, strength, dexterity, intelligence, health, hit_points, will, perception, fatigue_points, abilities, background_story } = req.body;
     for (const field of ['name', 'race', 'cclass', 'strength', 'intelligence', 'dexterity', 'health', 'hit_points', 'will', 'perception', 'fatigue_points'])
       if (!req.body[field])
@@ -131,6 +133,19 @@ usersRouter
       .catch(next);
   });
 
+usersRouter
+  .route('/:id')
+  .all(requireAuth)
+  .get((req, res, next) => {
+    const char_id = req.params.id;
+    characterService.getById(
+      req.app.get('db'),
+      char_id)
+      .then(char => {
+        res.json(characterService.serializeCharacter(char));
+      })
+      .catch(next);
+  });
 
 usersRouter
   .route('/:user_id')
