@@ -22,29 +22,23 @@ usersRouter
   })
   .post(jsonParser, (req, res, next) => {
     const { email, user_name, display_name, password } = req.body;
-
     for (const field of ['email', 'display_name', 'user_name', 'password'])
       if (!req.body[field])
         return res.status(400).json({
           error: `Missing '${field}' in request body`
         });
-
     const EmailError = UsersService.validateEmail(email);
     if (EmailError)
       return res.status(400).json({ error: EmailError });
-
     const DisplayNameError = UsersService.validateDisplayName(display_name);
     if (DisplayNameError)
       return res.status(400).json({ error: DisplayNameError });
-
     const usernameError = UsersService.validateUserName(user_name);
     if (usernameError)
       return res.status(400).json({ error: usernameError });
-
     const passwordError = UsersService.validatePassword(password);
     if (passwordError)
       return res.status(400).json({ error: passwordError });
-
     UsersService.hasUserWithUserName(
       req.app.get('db'),
       user_name
@@ -52,7 +46,6 @@ usersRouter
       .then(hasUserWithUserName => {
         if (hasUserWithUserName)
           return res.status(400).json({ error: `Username already taken` });
-
         return UsersService.hashPassword(password)
           .then(hashedPassword => {
             const newUser = {
@@ -62,7 +55,6 @@ usersRouter
               display_name,
               date_created: 'now()',
             };
-
             return UsersService.insertUser(
               req.app.get('db'),
               newUser
@@ -70,7 +62,6 @@ usersRouter
               .then(user => {
                 res
                   .status(201)
-                  .location(path.posix.join(req.originalUrl, `/${user.id}`))
                   .json(UsersService.serializeUser(user));
               })
               .catch(next);
@@ -81,7 +72,6 @@ usersRouter
 usersRouter
   .route('/:user_id/Characters')
   .all(requireAuth)
-
   .get((req, res, next) => {
     UsersService.getUserChars(
       req.app.get('db'),
@@ -93,7 +83,6 @@ usersRouter
   })
   .post(jsonParser, (req, res, next) => {
     const user_id = req.params.user_id;
-    console.log(req.body);
     const { name, race, cclass, strength, dexterity, intelligence, health, hit_points, will, perception, fatigue_points, abilities, background_story } = req.body;
     for (const field of ['name', 'race', 'cclass', 'strength', 'intelligence', 'dexterity', 'health', 'hit_points', 'will', 'perception', 'fatigue_points'])
       if (!req.body[field])

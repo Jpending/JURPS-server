@@ -54,7 +54,11 @@ const characterService = {
         return rows[0];
       });
   },
-
+  deleteChar(knex, id) {
+    return knex('jurps_characters')
+      .where({ id })
+      .delete();
+  },
   serializeCharacters(chars) {
     return chars.map(this.serializeCharacter);
   },

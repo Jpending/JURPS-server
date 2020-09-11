@@ -43,6 +43,16 @@ characterRouter.route('/:char_id')
         res.status(204).json({ message: 'changes submitted' }).end();
       })
       .catch(next);
+  })
+  .delete((req, res, next) => {
+    characterService.deleteChar(
+      req.app.get('db'),
+      req.params.char_id
+    )
+      .then(numRowsAffected => {
+        res.status(204);
+      })
+      .catch(next);
   });
 
 async function checkCharExists(req, res, next) {
@@ -51,13 +61,11 @@ async function checkCharExists(req, res, next) {
       req.app.get('db'),
       req.params.char_id
     )
-
     if (!character)
       return res.status(404).json({
         message: req.params.char_id,
         error: `That doesn't exist`
       })
-
     res.character = character
     next()
   } catch (error) {
@@ -69,7 +77,6 @@ async function asyncCall() {
   console.log('calling');
   const result = await resolveAfter2Seconds();
   console.log(result);
-
 }
 
 module.exports = characterRouter
